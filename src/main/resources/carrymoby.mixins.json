@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "com.carrymoby.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"PlayerCarryDataMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

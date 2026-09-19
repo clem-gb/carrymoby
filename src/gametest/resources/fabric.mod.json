@@ -1,0 +1,15 @@
+{
+	"schemaVersion": 1,
+	"id": "carrymoby-test",
+	"version": "1.0.0",
+	"name": "CarryMoby Test",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-client-gametest": [
+			"com.carrymoby.test.CarryClientGameTest"
+		]
+	},
+	"depends": {
+		"carrymoby": "*"
+	}
+}

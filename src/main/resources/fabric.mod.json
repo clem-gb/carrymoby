@@ -1,0 +1,33 @@
+{
+	"schemaVersion": 1,
+	"id": "carrymoby",
+	"version": "${version}",
+	"name": "CarryMoby",
+	"description": "Porte les mobs sur tes épaules. Le mob reste avec toi quoi qu'il arrive : téléportation, changement de dimension, mort, déconnexion.",
+	"authors": [
+		"clement"
+	],
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.carrymoby.CarryMoby"
+		],
+		"client": [
+			"com.carrymoby.client.CarryMobyClient"
+		]
+	},
+	"mixins": [
+		"carrymoby.mixins.json",
+		{
+			"config": "carrymoby.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
