@@ -71,6 +71,10 @@ rien sur les épaules.
 Le test client (`src/gametest`) joue le scénario complet et écrit des captures dans
 `build/run/clientGameTest/screenshots/`.
 
+## Licence
+
+MIT — voir [LICENSE](LICENSE).
+
 ## Origine
 
 Ce mod est **écrit à 100 % par une IA** (Claude Opus 5, via Claude Code), à partir d'un seul
