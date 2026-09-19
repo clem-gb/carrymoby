@@ -20,12 +20,12 @@ public class CarriedMobLayer extends RenderLayer<AvatarRenderState, PlayerModel>
 	private static final float SHOULDER_HEIGHT = 1.32F;
 	private static final float CROUCHING_SHOULDER_HEIGHT = 1.08F;
 	/** Sideways offset, so the mob sits on a shoulder instead of swallowing the head. */
-	private static final float SHOULDER_SIDE = -0.33F;
+	private static final float SHOULDER_SIDE = -0.42F;
 	/** Undoes the {@code translate(0, -1.501, 0)} the living entity renderer applied. */
 	private static final float MODEL_ORIGIN_OFFSET = 1.501F;
 	/** Mobs bigger than this are shrunk so they look carried rather than worn. */
-	private static final float TARGET_HEIGHT = 0.8F;
-	private static final float TARGET_WIDTH = 0.6F;
+	private static final float TARGET_HEIGHT = 0.7F;
+	private static final float TARGET_WIDTH = 0.5F;
 
 	public CarriedMobLayer(RenderLayerParent<AvatarRenderState, PlayerModel> parent) {
 		super(parent);
@@ -74,9 +74,10 @@ public class CarriedMobLayer extends RenderLayer<AvatarRenderState, PlayerModel>
 
 		if (state instanceof LivingEntityRenderState living) {
 			// 180 degrees cancels out the rotation the player model already applied, so the mob
-			// looks the same way its carrier does.
+			// looks the same way its carrier does. yRot is the head yaw *relative* to the body,
+			// so it has to stay at zero or the mob ends up looking over its own back.
 			living.bodyRot = 180.0F;
-			living.yRot = 180.0F;
+			living.yRot = 0.0F;
 			living.xRot = 0.0F;
 			living.walkAnimationSpeed = 0.0F;
 			living.deathTime = 0.0F;

@@ -28,7 +28,7 @@ public class CarryClientGameTest implements FabricClientGameTest {
 			server.runCommand("gamemode creative @a");
 			server.runCommand("execute as @a at @s run tp @s ~ ~ ~ 0 35");
 			context.waitTicks(2);
-			server.runCommand("execute as @a at @s run summon minecraft:chicken ~ ~ ~2");
+			server.runCommand("execute as @a at @s run summon minecraft:sheep ~ ~ ~2");
 			context.waitTicks(5);
 			// Aim from the client: in singleplayer the client owns the camera and would
 			// immediately overwrite a rotation set by /tp.
@@ -45,7 +45,16 @@ public class CarryClientGameTest implements FabricClientGameTest {
 			context.waitTicks(10);
 			context.takeScreenshot("02-carrying");
 			assertCarrying(server, true, "after pressing the carry key");
-			assertChickensInWorld(server, 0, "after pickup");
+			assertMobsInWorld(server, 0, "after pickup");
+
+			server.runCommand("execute as @a at @s run tp @s ~ ~ ~ 90 10");
+			context.runOnClient(client -> {
+				client.player.setYRot(90.0F);
+				client.player.setXRot(10.0F);
+				client.player.setOldPosAndRot();
+			});
+			context.waitTicks(5);
+			context.takeScreenshot("02b-carrying-side");
 
 			server.runCommand("kill @a");
 			context.waitTicks(10);
@@ -64,7 +73,7 @@ public class CarryClientGameTest implements FabricClientGameTest {
 			context.waitTicks(10);
 			context.takeScreenshot("05-released");
 			assertCarrying(server, false, "after putting the mob down");
-			assertChickensInWorld(server, 1, "after release");
+			assertMobsInWorld(server, 1, "after release");
 		}
 	}
 
@@ -79,13 +88,13 @@ public class CarryClientGameTest implements FabricClientGameTest {
 		}
 	}
 
-	private static void assertChickensInWorld(TestServerContext server, int expected, String when) {
+	private static void assertMobsInWorld(TestServerContext server, int expected, String when) {
 		int actual = server.computeOnServer(minecraftServer -> {
 			int count = 0;
 
 			for (net.minecraft.server.level.ServerLevel level : minecraftServer.getAllLevels()) {
 				for (net.minecraft.world.entity.Entity entity : level.getAllEntities()) {
-					if (entity.getType() == EntityType.CHICKEN) {
+					if (entity.getType() == EntityType.SHEEP) {
 						count++;
 					}
 				}
@@ -95,7 +104,7 @@ public class CarryClientGameTest implements FabricClientGameTest {
 		});
 
 		if (actual != expected) {
-			throw new AssertionError("Expected " + expected + " chicken(s) in the world " + when + ", found " + actual);
+			throw new AssertionError("Expected " + expected + " sheep in the world " + when + ", found " + actual);
 		}
 	}
 }
