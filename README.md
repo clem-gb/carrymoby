@@ -70,3 +70,19 @@ rien sur les épaules.
 
 Le test client (`src/gametest`) joue le scénario complet et écrit des captures dans
 `build/run/clientGameTest/screenshots/`.
+
+## Origine
+
+Ce mod est **écrit à 100 % par une IA** (Claude Opus 5, via Claude Code), à partir d'un seul
+prompt de départ : un mod pour porter des mobs, qui restent sur le joueur quoi qu'il arrive
+(téléportation, mort, vol), en Fabric — avec quatre questions posées en retour pour cadrer la
+version de Minecraft, les mobs autorisés, le comportement à la mort et les contrôles.
+
+Le reste s'est fait tout seul : APIs vérifiées dans les sources décompilées de 1.21.11, test
+client automatisé écrit et joué en vrai, ciblage en cône ajouté après avoir constaté que viser
+un poulet au rayon pur était pénible.
+
+**Un seul bug a survécu jusqu'au joueur** : le mob porté avait la tête vissée à l'envers. Dans
+le render state, `yRot` est le lacet de la tête *relatif au corps*, pas une rotation absolue ;
+le mettre à 180 comme le `bodyRot` faisait faire un demi-tour de trop à la tête. Repéré par
+l'humain sur capture d'écran, corrigé en un commit (`48b698f`).
