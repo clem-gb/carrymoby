@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # gradle.properties pins a local JDK path; point Gradle at the runner's JDK instead.
+      # `build` also runs the server game tests.
+      - name: Build
+        run: ./gradlew build -Dorg.gradle.java.home="$JAVA_HOME"
+
+      - name: Check the jar matches the tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          test -f "build/libs/carrymoby-${version}.jar" || {
+            echo "build/libs/carrymoby-${version}.jar not found, is gradle.properties at ${version}?"
+            ls build/libs
+            exit 1
+          }
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: CarryMoby ${{ github.ref_name }}
+          body_path: .github/release-notes/${{ github.ref_name }}.md
+          files: build/libs/carrymoby-*[0-9].jar

@@ -56,7 +56,7 @@ et un villageois en pleine négociation.
 
 1. Installe **Fabric Loader ≥ 0.19.5** pour Minecraft 1.21.11.
 2. Mets **Fabric API** dans `mods/`.
-3. Mets `carrymoby-1.0.0.jar` dans `mods/`.
+3. Mets `carrymoby-1.1.0.jar` dans `mods/`.
 
 Le mod doit être présent **côté serveur**. Côté client il est nécessaire pour la touche et
 l'affichage du mob ; un client sans le mod peut toujours se connecter, il ne verra simplement
@@ -65,7 +65,7 @@ rien sur les épaules.
 ## Développement
 
 ```bash
-./gradlew build            # produit build/libs/carrymoby-1.0.0.jar
+./gradlew build            # produit build/libs/carrymoby-1.1.0.jar
 ./gradlew runClient        # client de dev
 ./gradlew runServer        # serveur de dev
 ./gradlew runGameTest       # tests serveur, sans écran : une règle par test
@@ -89,7 +89,7 @@ MIT — voir [LICENSE](LICENSE).
 
 ## Origine
 
-Ce mod est **écrit à 100 % par une IA** (Claude Opus 5, via Claude Code), à partir d'un seul
+Ce mod est **écrit à 100 % par une IA** (Claude Opus 5.5, via Claude Code), à partir d'un seul
 prompt de départ : un mod pour porter des mobs, qui restent sur le joueur quoi qu'il arrive
 (téléportation, mort, vol), en Fabric — avec quatre questions posées en retour pour cadrer la
 version de Minecraft, les mobs autorisés, le comportement à la mort et les contrôles.
