@@ -1,10 +1,11 @@
 {
 	"key.carrymoby.toggle": "Porter / poser un mob",
-	"key.categories.carrymoby": "CarryMoby",
+	"key.category.carrymoby.carrymoby": "CarryMoby",
 	"carrymoby.message.no_target": "Aucun mob transportable en vue",
 	"carrymoby.message.picked_up": "%s sur les épaules",
 	"carrymoby.message.released": "%s reposé au sol",
 	"carrymoby.message.lost": "Le mob porté n'a pas pu être restauré",
+	"carrymoby.message.release_failed": "Impossible de poser le mob ici",
 	"carrymoby.command.reloaded": "Configuration CarryMoby rechargée",
 	"carrymoby.command.dropped": "Mob lâché pour %s joueur(s)",
 	"carrymoby.command.empty": "Tu ne portes rien",
