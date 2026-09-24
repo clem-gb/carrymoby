@@ -21,8 +21,8 @@ même inventaire, même amour de villageois.
 | --- | --- |
 | Attraper / reposer le mob visé | touche **C** (remappable dans Options → Commandes, catégorie **CarryMoby**) |
 
-Vise un mob et appuie sur **C**. Le viseur est tolérant : si le rayon rate, le mod prend le mob
-carryable le plus proche du centre de l'écran dans un cône de 30°, jusqu'à 4,5 blocs.
+Vise un mob et appuie sur **C**. Il faut le viser comme pour le frapper : le rayon s'arrête aux
+blocs et porte à 4,5 blocs.
 
 Appuie à nouveau sur **C** pour le reposer devant toi (ou à tes pieds si l'endroit est occupé).
 
@@ -68,11 +68,20 @@ rien sur les épaules.
 ./gradlew build            # produit build/libs/carrymoby-1.0.0.jar
 ./gradlew runClient        # client de dev
 ./gradlew runServer        # serveur de dev
-./gradlew runClientGameTest # test automatisé : ramasse, meurt, change de dimension, repose
+./gradlew runGameTest       # tests serveur, sans écran : une règle par test
+./gradlew runClientGameTest # test client de bout en bout : rate, ramasse, meurt, change de dimension, repose
 ```
 
-Le test client (`src/gametest`) joue le scénario complet et écrit des captures dans
-`build/run/clientGameTest/screenshots/`.
+Les tests serveur (`CarryServerGameTest`) vérifient chaque règle en passant par le même point
+d'entrée que la touche, donc ce qu'un client modifié pourrait tenter : pas de ramassage à travers
+un mur, hors de portée ou sans viser, pas d'animal d'un autre joueur, pas de mob en laisse ou
+chevauché par quelqu'un d'autre, rien en spectateur, menu ouvert ou mort, limite de fréquence,
+pas de pose à travers un mur, laisse rendue, données conservées et sauvegardées, et rien de
+privé (coordonnées, mémoire) envoyé aux autres joueurs.
+
+Le test client (`CarryClientGameTest`) joue le scénario complet avec la vraie touche et vérifie
+aussi ce que le client affiche. Il écrit des captures dans `build/run/clientGameTest/screenshots/`
+(sans écran : `xvfb-run ./gradlew runClientGameTest`).
 
 ## Licence
 
@@ -87,7 +96,7 @@ version de Minecraft, les mobs autorisés, le comportement à la mort et les con
 
 Le reste s'est fait tout seul : APIs vérifiées dans les sources décompilées de 1.21.11, test
 client automatisé écrit et joué en vrai, ciblage en cône ajouté après avoir constaté que viser
-un poulet au rayon pur était pénible.
+un poulet au rayon pur était pénible (retiré ensuite : on vise un mob comme en vanilla).
 
 **Un seul bug a survécu jusqu'au joueur** : le mob porté avait la tête vissée à l'envers. Dans
 le render state, `yRot` est le lacet de la tête *relatif au corps*, pas une rotation absolue ;

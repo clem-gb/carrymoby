@@ -101,9 +101,6 @@ public final class CarryManager {
 		}
 	}
 
-	/** Cosine of the half-angle of the forgiving cone, about 30 degrees. */
-	private static final double CONE_COSINE = 0.87;
-
 	@Nullable
 	private static Entity pick(ServerPlayer player) {
 		double range = CarryConfig.get().pickupRange;
@@ -124,44 +121,7 @@ public final class CarryManager {
 		AABB box = player.getBoundingBox().expandTowards(end.subtract(eye)).inflate(1.0);
 		EntityHitResult hit = ProjectileUtil.getEntityHitResult(player, eye, end, box, entity -> canCarry(player, entity), reachSqr);
 
-		if (hit != null) {
-			return hit.getEntity();
-		}
-
-		// Chickens and cats are small and spend their time at your feet, so a pixel-perfect ray
-		// is a frustrating way to grab them. Fall back to whatever sits closest to the crosshair.
-		Entity best = null;
-		double bestAlignment = CONE_COSINE;
-
-		for (Entity candidate : player.level().getEntities(player, player.getBoundingBox().inflate(range), entity -> canCarry(player, entity))) {
-			Vec3 toward = candidate.getBoundingBox().getCenter().subtract(eye);
-
-			if (toward.lengthSqr() > range * range || toward.lengthSqr() < 1.0E-4) {
-				continue;
-			}
-
-			double alignment = toward.normalize().dot(look);
-
-			if (alignment > bestAlignment && canSee(player, eye, candidate)) {
-				bestAlignment = alignment;
-				best = candidate;
-			}
-		}
-
-		return best;
-	}
-
-	/** True when nothing solid stands between the player's eyes and the mob's body or head. */
-	private static boolean canSee(ServerPlayer player, Vec3 eye, Entity target) {
-		for (Vec3 point : List.of(target.getBoundingBox().getCenter(), target.getEyePosition())) {
-			ClipContext clip = new ClipContext(eye, point, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player);
-
-			if (player.level().clip(clip).getType() == HitResult.Type.MISS) {
-				return true;
-			}
-		}
-
-		return false;
+		return hit == null ? null : hit.getEntity();
 	}
 
 	/**
@@ -407,7 +367,7 @@ public final class CarryManager {
 	private static final int MAX_DISPLAY_BYTES = 256 * 1024;
 
 	/** Builds the copy of the carried mob that is sent to clients, which only draw it. */
-	private static Optional<CompoundTag> displayTag(@Nullable CompoundTag tag) {
+	public static Optional<CompoundTag> displayTag(@Nullable CompoundTag tag) {
 		if (tag == null) {
 			return Optional.empty();
 		}

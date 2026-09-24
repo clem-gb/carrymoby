@@ -5,6 +5,9 @@
 	"name": "CarryMoby Test",
 	"environment": "*",
 	"entrypoints": {
+		"fabric-gametest": [
+			"com.carrymoby.test.CarryServerGameTest"
+		],
 		"fabric-client-gametest": [
 			"com.carrymoby.test.CarryClientGameTest"
 		]

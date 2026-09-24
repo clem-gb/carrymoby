@@ -26,7 +26,7 @@ fabricApi {
 	configureTests {
 		createSourceSet = true
 		modId = "carrymoby-test"
-		enableGameTests = false
+		enableGameTests = true
 		enableClientGameTests = true
 		eula = true
 	}
