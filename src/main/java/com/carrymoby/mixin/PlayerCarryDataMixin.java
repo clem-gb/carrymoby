@@ -22,6 +22,9 @@ public abstract class PlayerCarryDataMixin implements CarriedMobHolder {
 	@Nullable
 	private CompoundTag carrymoby$carried;
 
+	@Unique
+	private int carrymoby$lastToggle = Integer.MIN_VALUE / 2;
+
 	@Override
 	public @Nullable CompoundTag carrymoby$getCarried() {
 		return this.carrymoby$carried;
@@ -30,6 +33,16 @@ public abstract class PlayerCarryDataMixin implements CarriedMobHolder {
 	@Override
 	public void carrymoby$setCarried(@Nullable CompoundTag tag) {
 		this.carrymoby$carried = tag;
+	}
+
+	@Override
+	public int carrymoby$getLastToggle() {
+		return this.carrymoby$lastToggle;
+	}
+
+	@Override
+	public void carrymoby$setLastToggle(int tick) {
+		this.carrymoby$lastToggle = tick;
 	}
 
 	@Inject(method = "addAdditionalSaveData", at = @At("TAIL"))

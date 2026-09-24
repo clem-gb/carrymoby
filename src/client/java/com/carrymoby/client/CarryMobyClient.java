@@ -17,19 +17,24 @@ import net.minecraft.client.renderer.entity.player.AvatarRenderer;
 import org.lwjgl.glfw.GLFW;
 
 public class CarryMobyClient implements ClientModInitializer {
+	/** Own section in Options → Controls, titled by {@code key.category.carrymoby.carrymoby}. */
+	public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(CarryMoby.id("carrymoby"));
+
 	public static final KeyMapping CARRY_KEY = new KeyMapping(
 			"key.carrymoby.toggle",
 			InputConstants.Type.KEYSYM,
 			GLFW.GLFW_KEY_C,
-			KeyMapping.Category.GAMEPLAY
+			CATEGORY
 	);
 
 	@Override
 	public void onInitializeClient() {
 		KeyBindingHelper.registerKeyBinding(CARRY_KEY);
 
+		// Already called on the client thread; deferring it could let a stale packet land after
+		// the disconnect cleared the cache.
 		ClientPlayNetworking.registerGlobalReceiver(CarrySyncPayload.ID, (payload, context) ->
-				context.client().execute(() -> CarriedMobCache.put(payload.entityId(), payload.mob().orElse(null))));
+				CarriedMobCache.put(payload.entityId(), payload.mob().orElse(null)));
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			CarriedMobCache.tick();

@@ -15,4 +15,9 @@ public interface CarriedMobHolder {
 	CompoundTag carrymoby$getCarried();
 
 	void carrymoby$setCarried(@Nullable CompoundTag tag);
+
+	/** Server tick of the last accepted carry key press. Not saved, only used for rate limiting. */
+	int carrymoby$getLastToggle();
+
+	void carrymoby$setLastToggle(int tick);
 }

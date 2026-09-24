@@ -1,10 +1,11 @@
 {
 	"key.carrymoby.toggle": "Carry / put down mob",
-	"key.categories.carrymoby": "CarryMoby",
+	"key.category.carrymoby.carrymoby": "CarryMoby",
 	"carrymoby.message.no_target": "Nothing carryable in sight",
 	"carrymoby.message.picked_up": "Carrying %s",
 	"carrymoby.message.released": "%s put down",
 	"carrymoby.message.lost": "The carried mob could not be restored",
+	"carrymoby.message.release_failed": "Could not put the mob down here",
 	"carrymoby.command.reloaded": "CarryMoby config reloaded",
 	"carrymoby.command.dropped": "Dropped the mob of %s player(s)",
 	"carrymoby.command.empty": "You are not carrying anything",

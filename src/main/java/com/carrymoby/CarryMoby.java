@@ -31,8 +31,11 @@ public class CarryMoby implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(ToggleCarryPayload.ID, ToggleCarryPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(CarrySyncPayload.ID, CarrySyncPayload.CODEC);
 
+		// Fabric already runs this on the server thread. Deferring it once more with execute()
+		// would let it land after the player disconnected and their data was saved, which
+		// would delete the mob they were picking up.
 		ServerPlayNetworking.registerGlobalReceiver(ToggleCarryPayload.ID,
-				(payload, context) -> context.server().execute(() -> CarryManager.toggle(context.player())));
+				(payload, context) -> CarryManager.toggle(context.player()));
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> CarryCommand.register(dispatcher));
 

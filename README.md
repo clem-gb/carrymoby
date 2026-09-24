@@ -19,7 +19,7 @@ même inventaire, même amour de villageois.
 
 | Action | Par défaut |
 | --- | --- |
-| Attraper / reposer le mob visé | touche **C** (remappable dans Options → Commandes) |
+| Attraper / reposer le mob visé | touche **C** (remappable dans Options → Commandes, catégorie **CarryMoby**) |
 
 Vise un mob et appuie sur **C**. Le viseur est tolérant : si le rayon rate, le mod prend le mob
 carryable le plus proche du centre de l'écran dans un cône de 30°, jusqu'à 4,5 blocs.
@@ -43,11 +43,14 @@ Appuie à nouveau sur **C** pour le reposer devant toi (ou à tes pieds si l'end
 | `maxWidth` | `1.0` | largeur de hitbox maximale, en blocs |
 | `maxHeight` | `1.5` | hauteur de hitbox maximale, en blocs |
 | `pickupRange` | `4.5` | portée de ramassage, en blocs |
+| `allowCarryingOthersPets` | `false` | autoriser à prendre les animaux apprivoisés d'un autre joueur |
 | `keepOnDeath` | `true` | `false` fait tomber le mob à l'endroit de la mort |
 | `slownessFactor` | `0.0` | malus de vitesse, `0.15` = -15 % |
 | `blacklist` | dragon, wither, warden | mobs interdits quoi qu'il arrive |
 
-Les joueurs ne sont jamais transportables.
+Les joueurs ne sont jamais transportables. Ne le sont pas non plus : les mobs invulnérables
+(PNJ de serveur, marchands de map aventure), un mob tenu en laisse ou chevauché par un autre joueur,
+et un villageois en pleine négociation.
 
 ## Installation
 
