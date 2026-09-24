@@ -1,9 +1,13 @@
 name: Release
 
+# Publishes the mod jar as a GitHub release, either when a v* tag is pushed, or when release
+# notes are pushed for the version in gradle.properties (the tag is then created by GitHub).
 on:
   push:
     tags:
       - "v*"
+    paths:
+      - ".github/release-notes/*.md"
 
 permissions:
   contents: write
@@ -13,31 +17,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Work out the version
+        id: version
+        run: |
+          version="$(sed -n 's/^version=//p' gradle.properties)"
+          tag="v${version}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+          if [[ "$GITHUB_REF" == refs/tags/* && "$GITHUB_REF_NAME" != "$tag" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match version=${version} in gradle.properties"
+            exit 1
+          fi
+
+          if [[ ! -f ".github/release-notes/${tag}.md" ]]; then
+            echo "No release notes for ${tag}, nothing to release"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$GITHUB_REF" != refs/tags/* ]] && git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            echo "${tag} is already released"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/setup-java@v4
+        if: steps.version.outputs.skip != 'true'
         with:
           distribution: temurin
           java-version: 21
 
       - uses: gradle/actions/setup-gradle@v4
+        if: steps.version.outputs.skip != 'true'
 
       # gradle.properties pins a local JDK path; point Gradle at the runner's JDK instead.
       # `build` also runs the server game tests.
       - name: Build
+        if: steps.version.outputs.skip != 'true'
         run: ./gradlew build -Dorg.gradle.java.home="$JAVA_HOME"
 
-      - name: Check the jar matches the tag
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          test -f "build/libs/carrymoby-${version}.jar" || {
-            echo "build/libs/carrymoby-${version}.jar not found, is gradle.properties at ${version}?"
-            ls build/libs
-            exit 1
-          }
-
       - name: Publish the release
+        if: steps.version.outputs.skip != 'true'
         uses: softprops/action-gh-release@v2
         with:
-          name: CarryMoby ${{ github.ref_name }}
-          body_path: .github/release-notes/${{ github.ref_name }}.md
-          files: build/libs/carrymoby-*[0-9].jar
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: CarryMoby ${{ steps.version.outputs.version }}
+          body_path: .github/release-notes/${{ steps.version.outputs.tag }}.md
+          files: build/libs/carrymoby-${{ steps.version.outputs.version }}.jar
+          fail_on_unmatched_files: true
