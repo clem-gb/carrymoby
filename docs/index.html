@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CarryMoby</title>
+<meta name="description" content="A Fabric mod for Minecraft 1.21.11: pick up a mob and carry it on your shoulders through teleports, dimensions, logouts and death.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  /* One painted world: ultramarine ground, marble, a grey drape. Deliberately single-theme. */
+  :root {
+    --lapis: #2340b8;
+    --lapis-deep: #172a86;
+    --lapis-line: rgba(245, 244, 240, 0.22);
+    --marble: #f5f4f0;
+    --marble-shade: #dddbd3;
+    --ink: #0f1736;
+    --ink-soft: #414a6b;
+    --vermilion: #e0452b;
+    --fold-dark: #53515f;
+    --fold-mid: #8e8c9b;
+    --fold-light: #d3d1db;
+
+    --serif: "Cormorant Garamond", "EB Garamond", Garamond, "Times New Roman", serif;
+    --sans: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+    --gutter: clamp(16px, 4vw, 56px);
+    --measure: 64ch;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--lapis);
+    color: var(--marble);
+    font: 400 16px/1.6 var(--sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--vermilion); outline-offset: 3px; }
+
+  .wrap { max-width: 1200px; margin-inline: auto; padding-inline: var(--gutter); }
+
+  .eyebrow {
+    font: 600 12px/1.2 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- nav ---------- */
+  .nav {
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    padding-block: 22px;
+  }
+  .wordmark {
+    font: italic 500 26px/1 var(--serif);
+    letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+  .nav ul { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; }
+  .nav ul a { font-size: 14px; text-decoration: none; opacity: 0.85; }
+  .nav ul a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 4px; }
+  .nav .version {
+    font: 500 12px/1 var(--mono);
+    border: 1px solid var(--lapis-line);
+    padding: 7px 10px;
+    border-radius: 2px;
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: end;
+    gap: clamp(24px, 4vw, 64px);
+    padding-block: clamp(24px, 5vw, 56px) 0;
+  }
+  .hero-copy { display: grid; gap: 28px; padding-bottom: clamp(32px, 7vw, 96px); }
+  .hero h1 {
+    margin: 0;
+    font: 500 clamp(3.1rem, 7.4vw, 6.6rem)/0.92 var(--serif);
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; }
+  .lede { margin: 0; max-width: 44ch; font-size: 18px; line-height: 1.55; opacity: 0.92; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    font: 600 15px/1 var(--sans);
+    text-decoration: none;
+    padding: 15px 20px;
+    border-radius: 2px;
+    border: 1px solid var(--marble);
+    cursor: pointer;
+  }
+  .btn-solid { background: var(--marble); color: var(--ink); }
+  .btn-solid:hover { background: #fff; }
+  .btn-ghost { background: transparent; color: var(--marble); border-color: var(--lapis-line); }
+  .btn-ghost:hover { border-color: var(--marble); }
+  .key {
+    display: inline-grid; place-items: center;
+    min-width: 26px; height: 26px; padding-inline: 6px;
+    font: 500 13px/1 var(--mono);
+    color: var(--marble);
+    background: var(--vermilion);
+    border-radius: 3px;
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+  }
+  .fineprint { margin: 0; font-size: 13px; max-width: 46ch; opacity: 0.7; }
+
+  /* the painted stage */
+  .stage-col { margin: 0; display: grid; gap: 20px; padding-bottom: clamp(28px, 5vw, 56px); }
+  .stage {
+    position: relative;
+    height: clamp(440px, 48vw, 620px);
+    isolation: isolate;
+  }
+  .rod {
+    position: absolute; z-index: 3; top: 0; left: -4%; right: -4%; height: 10px;
+    background: linear-gradient(#3b3946, #1e1d27);
+    border-radius: 5px;
+  }
+  .drape {
+    position: absolute; z-index: 1; top: 4px; bottom: 34px;
+    width: 58%;
+    background:
+      linear-gradient(180deg, rgba(20, 18, 40, 0.45) 0%, transparent 16%, transparent 64%, rgba(14, 14, 36, 0.5) 100%),
+      repeating-linear-gradient(90deg,
+        var(--fold-dark) 0, var(--fold-mid) 16px, var(--fold-light) 28px,
+        #b3b1bf 38px, #737181 52px, var(--fold-dark) 62px);
+    transition: transform 1.5s cubic-bezier(0.7, 0, 0.2, 1), border-radius 1.5s ease, z-index 0s linear 1.5s;
+  }
+  .drape-left {
+    left: 0;
+    transform-origin: left top;
+    transform: scaleX(0.16);
+    border-bottom-right-radius: 100% 26%;
+  }
+  .drape-right {
+    right: 0;
+    transform-origin: right top;
+    transform: scaleX(0.36);
+    border-bottom-left-radius: 100% 30%;
+  }
+  .stage.is-closed .drape-left,
+  .stage.is-closed .drape-right {
+    transform: scaleX(0.9); border-radius: 0; z-index: 4;
+    transition: transform 1.5s cubic-bezier(0.7, 0, 0.2, 1), border-radius 1.5s ease, z-index 0s;
+  }
+  .stage.no-anim .drape { transition: none; }
+
+  .statue {
+    position: absolute; z-index: 2;
+    left: 50%; bottom: 26px;
+    height: calc(100% - 46px); width: auto; max-width: none;
+    transform: translateX(-50%);
+    filter: drop-shadow(-22px 26px 26px rgba(6, 12, 52, 0.42));
+  }
+  .plinth {
+    position: absolute; z-index: 1; left: -4%; right: -4%; bottom: 0; height: 34px;
+    background: linear-gradient(var(--marble) 0 38%, var(--marble-shade) 38% 100%);
+    box-shadow: 0 18px 40px rgba(6, 12, 52, 0.35);
+  }
+
+  .label {
+    justify-self: end;
+    width: min(250px, 100%);
+    background: var(--marble); color: var(--ink);
+    padding: 14px 16px 16px;
+    font-size: 12.5px; line-height: 1.45;
+    box-shadow: 0 10px 30px rgba(6, 12, 52, 0.3);
+  }
+  .label b { display: block; font: italic 600 18px/1.1 var(--serif); margin-bottom: 4px; }
+  .label span { display: block; color: var(--ink-soft); }
+  .label p { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid var(--marble-shade); }
+
+  /* ---------- frieze ---------- */
+  .frieze { background: var(--lapis-deep); padding-block: clamp(48px, 8vw, 96px); }
+  .frieze .eyebrow { opacity: 0.75; margin: 0 0 22px; }
+  .survives {
+    margin: 0; padding: 0; list-style: none;
+    display: flex; flex-wrap: wrap; align-items: baseline;
+    gap: 6px 18px;
+    font: 500 clamp(2rem, 5vw, 3.9rem)/1.1 var(--serif);
+    letter-spacing: -0.015em;
+  }
+  .survives li { display: inline-flex; align-items: baseline; gap: 18px; }
+  .survives li:not(:last-child)::after {
+    content: ""; width: 0.22em; height: 0.22em; background: var(--vermilion);
+    transform: rotate(45deg) translateY(-0.18em);
+  }
+  .survives li:last-child { font-style: italic; }
+  .frieze-note {
+    margin: 36px 0 0; max-width: var(--measure);
+    font-size: 18px; line-height: 1.6; opacity: 0.9;
+  }
+
+  /* ---------- marble sections ---------- */
+  .marble { background: var(--marble); color: var(--ink); padding-block: clamp(56px, 9vw, 112px); }
+  .marble .eyebrow { color: var(--lapis); margin: 0 0 14px; }
+  h2 {
+    margin: 0 0 clamp(28px, 4vw, 48px);
+    font: 500 clamp(2.2rem, 4.6vw, 3.6rem)/1 var(--serif);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    max-width: 18ch;
+  }
+  h3 { margin: 0 0 8px; font: 600 1.55rem/1.15 var(--serif); }
+
+  .steps {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(24px, 4vw, 48px);
+    margin: 0; padding: 0; list-style: none;
+  }
+  .steps li { display: grid; align-content: start; gap: 6px; border-top: 1px solid var(--ink); padding-top: 18px; }
+  .numeral { font: italic 500 2.6rem/1 var(--serif); color: var(--lapis); }
+  .steps p { margin: 0; color: var(--ink-soft); }
+
+  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(32px, 6vw, 80px); }
+  .rulelist { margin: 0; padding: 0; list-style: none; }
+  .rulelist li { padding: 12px 0; border-bottom: 1px solid var(--lapis-line); }
+  .rulelist li:first-child { border-top: 1px solid var(--lapis-line); }
+  .rulelist small { display: block; opacity: 0.72; font-size: 14px; }
+
+  .rules { padding-block: clamp(56px, 9vw, 112px); }
+  .rules .eyebrow { margin: 0 0 14px; opacity: 0.75; }
+  .rules h3 { margin-bottom: 14px; }
+
+  code, .mono { font-family: var(--mono); font-size: 0.88em; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 12px 16px 12px 0; border-bottom: 1px solid var(--marble-shade); vertical-align: top; }
+  th { font: 600 12px/1.2 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+  td:first-child { white-space: nowrap; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .marble code { color: var(--lapis-deep); }
+  .config-path { margin: 0 0 28px; color: var(--ink-soft); }
+
+  .usage { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(32px, 6vw, 80px); margin-bottom: clamp(56px, 8vw, 96px); }
+  .usage p { margin: 0 0 14px; color: var(--ink-soft); max-width: 46ch; }
+  .keycap-big {
+    display: inline-grid; place-items: center;
+    width: 84px; height: 84px; margin-bottom: 20px;
+    font: 500 38px/1 var(--mono);
+    background: var(--vermilion); color: var(--marble);
+    border-radius: 6px;
+    box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.22);
+  }
+  .cmd { display: grid; gap: 2px; padding: 12px 0; border-bottom: 1px solid var(--marble-shade); }
+  .cmd:first-of-type { border-top: 1px solid var(--marble-shade); }
+  .cmd code { font-size: 14.5px; }
+  .cmd span { color: var(--ink-soft); font-size: 14.5px; }
+  .cmd em { font-style: normal; font: 600 11px/1 var(--sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--vermilion); margin-left: 6px; }
+
+  /* ---------- install ---------- */
+  .install { padding-block: clamp(56px, 9vw, 112px); }
+  .install .eyebrow { margin: 0 0 14px; opacity: 0.75; }
+  .install .steps li { border-top-color: var(--lapis-line); }
+  .install .numeral { color: var(--marble); }
+  .install .steps p { color: var(--marble); opacity: 0.85; }
+  .install code { background: rgba(245, 244, 240, 0.12); padding: 1px 5px; border-radius: 2px; }
+  .install .fineprint { margin-top: 36px; max-width: var(--measure); font-size: 15px; }
+
+  /* ---------- footer ---------- */
+  footer { background: var(--lapis-deep); padding-block: 40px; font-size: 14px; }
+  footer .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px 48px; }
+  footer p { margin: 0; opacity: 0.78; max-width: 56ch; }
+
+  /* ---------- small screens ---------- */
+  @media (max-width: 860px) {
+    .nav ul { display: none; }
+    .hero { grid-template-columns: minmax(0, 1fr); }
+    .hero-copy { padding-bottom: 8px; }
+    .stage { height: clamp(440px, 118vw, 600px); margin-inline: 4%; }
+    .steps, .cols, .usage, footer .wrap { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    table, tbody, tr, td { display: block; }
+    thead { display: none; }
+    tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding-block: 12px; border-bottom: 1px solid var(--marble-shade); }
+    td { padding: 0; border: 0; }
+    td:last-child { grid-column: 1 / -1; color: var(--ink-soft); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .drape { transition: none; }
+  }
+</style>
+
+<header class="wrap nav">
+  <a class="wordmark" href="#top" id="top">CarryMoby</a>
+  <ul>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#rules">What you can carry</a></li>
+    <li><a href="#usage">Commands</a></li>
+    <li><a href="#install">Install</a></li>
+  </ul>
+  <span class="version">1.0.0 · MC 1.21.11</span>
+</header>
+
+<main>
+  <section class="wrap hero">
+    <div class="hero-copy">
+      <p class="eyebrow" style="margin:0">Fabric mod for Minecraft 1.21.11</p>
+      <h1>Carry it through <em>anything.</em></h1>
+      <p class="lede">Aim at a mob and press <span class="key">C</span>. It rides on your shoulders through teleports, other dimensions, falls, logouts, server restarts and your own death, until you press C again.</p>
+      <div class="actions">
+        <a class="btn btn-solid" href="https://github.com/clem-gb/carrymoby">Get it on GitHub</a>
+        <button class="btn btn-ghost" type="button" id="curtain-toggle" aria-pressed="false">
+          <span class="key" aria-hidden="true">C</span><span id="curtain-label">Draw the curtain</span>
+        </button>
+      </div>
+      <p class="fineprint">Needed on the server. On the client it adds the key and draws the mob; players without it can still join, they just see bare shoulders.</p>
+    </div>
+
+    <figure class="stage-col">
+      <div class="stage" id="stage">
+      <div class="rod"></div>
+      <div class="drape drape-left"></div>
+      <div class="drape drape-right"></div>
+      <img class="statue" src="shepherd.webp" width="552" height="1400" alt="The Good Shepherd, a Roman marble statue of a young shepherd carrying a sheep across his shoulders">
+      <div class="plinth"></div>
+      </div>
+      <figcaption class="label">
+        <b>The Good Shepherd</b>
+        <span>Rome, 3rd–4th century AD</span>
+        <span>Marble. Museo Pio Cristiano, Vatican</span>
+        <p>Has carried the same sheep for about 1,700 years without putting it down once.</p>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="frieze" aria-labelledby="survives-title">
+    <div class="wrap">
+      <p class="eyebrow" id="survives-title">The mob stays on your shoulders through</p>
+      <ul class="survives">
+        <li>Teleports</li><li>The Nether</li><li>The End</li><li>Falls</li><li>Elytra flight</li><li>Logouts</li><li>Restarts</li><li>Death</li>
+      </ul>
+      <p class="frieze-note">Nothing can knock it off, because while you carry it the mob is not in the world at all. It lives in your player save file. Set <code>keepOnDeath</code> to <code>false</code> if you would rather it drop where you fell.</p>
+    </div>
+  </section>
+
+  <section class="marble" id="how">
+    <div class="wrap">
+      <p class="eyebrow">How it works</p>
+      <h2>A mob becomes a few lines of NBT, then a mob again.</h2>
+      <ol class="steps">
+        <li>
+          <span class="numeral">I.</span>
+          <h3>Pick up</h3>
+          <p>The mob is written as NBT into your player data and removed from the world. From then on it cannot be hurt, despawn or fall off.</p>
+        </li>
+        <li>
+          <span class="numeral">II.</span>
+          <h3>Carry</h3>
+          <p>Your client receives that NBT and builds a display-only copy on your shoulder, with the right variant, age, collar and name tag.</p>
+        </li>
+        <li>
+          <span class="numeral">III.</span>
+          <h3>Put down</h3>
+          <p>Press C again and the entity is rebuilt from the same NBT, in front of you or at your feet if that spot is taken. Same UUID, same health, same inventory, same villager reputation.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="rules" id="rules">
+    <div class="wrap">
+      <p class="eyebrow">What you can carry</p>
+      <h2>If a shepherd could lift it, so can you.</h2>
+      <div class="cols">
+        <div>
+          <h3>Goes on your shoulders</h3>
+          <ul class="rulelist">
+            <li>Passive mobs up to 1.0 × 1.5 blocks<small>Hitbox width × height, both configurable</small></li>
+            <li>Anything you can hit, up to 4.5 blocks away<small>You aim at it like an attack, and walls block the aim</small></li>
+            <li>Your own pets<small>A lead you were holding comes back to your inventory</small></li>
+            <li>Hostile mobs, if the server allows it<small><code>allowHostileMobs</code> is off by default</small></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Stays on the ground</h3>
+          <ul class="rulelist">
+            <li>Players<small>Never, whatever the config says</small></li>
+            <li>Someone else’s pet, or a mob they lead or ride<small>Unless <code>allowCarryingOthersPets</code> is on, for pets</small></li>
+            <li>A villager in the middle of a trade<small>Wait for the other player to close the menu</small></li>
+            <li>Invulnerable mobs<small>Server NPCs and adventure-map merchants</small></li>
+            <li>Ender Dragon, Wither, Warden<small>The default blacklist, on top of the size limit</small></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="marble" id="usage">
+    <div class="wrap">
+      <div class="usage">
+        <div>
+          <p class="eyebrow">Controls</p>
+          <span class="keycap-big" aria-hidden="true">C</span>
+          <h3>One key does both</h3>
+          <p>Aim at a mob and press C to pick it up. Press it again to set it down. Rebind it under Options → Controls → CarryMoby.</p>
+        </div>
+        <div>
+          <p class="eyebrow">Commands</p>
+          <div class="cmd"><code>/carrymoby info</code><span>Shows what you are carrying</span></div>
+          <div class="cmd"><code>/carrymoby drop</code><span>Drops your mob, if something went wrong</span></div>
+          <div class="cmd"><code>/carrymoby drop &lt;players&gt;</code><span>Drops other players’ mobs <em>Operator</em></span></div>
+          <div class="cmd"><code>/carrymoby reload</code><span>Reloads the config file <em>Operator</em></span></div>
+        </div>
+      </div>
+
+      <p class="eyebrow">Configuration</p>
+      <h2 style="margin-bottom:12px">Every limit lives in one file.</h2>
+      <p class="config-path"><code>config/carrymoby.json</code>, created on first launch</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th scope="col">Key</th><th scope="col">Default</th><th scope="col">What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>allowHostileMobs</code></td><td class="num">false</td><td>Lets players carry zombies, creepers and friends</td></tr>
+            <tr><td><code>maxWidth</code></td><td class="num">1.0</td><td>Largest hitbox width, in blocks</td></tr>
+            <tr><td><code>maxHeight</code></td><td class="num">1.5</td><td>Largest hitbox height, in blocks</td></tr>
+            <tr><td><code>pickupRange</code></td><td class="num">4.5</td><td>How far away you can pick a mob up, in blocks</td></tr>
+            <tr><td><code>allowCarryingOthersPets</code></td><td class="num">false</td><td>Lets players take someone else’s tamed animal</td></tr>
+            <tr><td><code>keepOnDeath</code></td><td class="num">true</td><td>When false, the mob drops where you died</td></tr>
+            <tr><td><code>slownessFactor</code></td><td class="num">0.0</td><td>Speed penalty while carrying; 0.15 means 15% slower</td></tr>
+            <tr><td><code>blacklist</code></td><td class="num">3 mobs</td><td>Never carryable: Ender Dragon, Wither, Warden</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="install" id="install">
+    <div class="wrap">
+      <p class="eyebrow">Install</p>
+      <h2>Three files in the right places.</h2>
+      <ol class="steps">
+        <li><span class="numeral">I.</span><h3>Fabric Loader</h3><p>Version 0.19.5 or newer, for Minecraft 1.21.11, on Java 21.</p></li>
+        <li><span class="numeral">II.</span><h3>Fabric API</h3><p>Drop it into your <code>mods/</code> folder.</p></li>
+        <li><span class="numeral">III.</span><h3>CarryMoby</h3><p>Put <code>carrymoby-1.0.0.jar</code> into <code>mods/</code>, on the server and on each client that wants to see the mobs.</p></li>
+      </ol>
+      <p class="fineprint">Building from source: <code>./gradlew build</code> writes the jar to <code>build/libs/</code>. <code>./gradlew runGameTest</code> checks every carry rule headless.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>CarryMoby is MIT licensed. It was written entirely by an AI, Claude, through Claude Code. One bug reached a player: the carried mob’s head was on backwards.</p>
+    <p>Statue photo by Fabrizio Garrisi, <a href="https://commons.wikimedia.org/wiki/File:Il_Buon_Pastore,_III-IV_sec,_Museo_Pio_Cristiano_-FG2.jpg">via Wikimedia Commons</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. Background removed. Not affiliated with Mojang or Microsoft.</p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var stage = document.getElementById("stage");
+    var button = document.getElementById("curtain-toggle");
+    var label = document.getElementById("curtain-label");
+
+    function setClosed(closed) {
+      stage.classList.toggle("is-closed", closed);
+      button.setAttribute("aria-pressed", String(closed));
+      label.textContent = closed ? "Open the curtain" : "Draw the curtain";
+    }
+
+    button.addEventListener("click", function () {
+      setClosed(!stage.classList.contains("is-closed"));
+    });
+
+    // Same key as the mod.
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "c" && e.key !== "C") return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      setClosed(!stage.classList.contains("is-closed"));
+    });
+
+    // Opening reveal: the curtain starts drawn, then parts once the statue has loaded.
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    var img = stage.querySelector(".statue");
+    stage.classList.add("no-anim");
+    setClosed(true);
+    void stage.offsetWidth;
+    stage.classList.remove("no-anim");
+    function reveal() { setTimeout(function () { setClosed(false); }, 300); }
+    if (img.complete) reveal(); else { img.addEventListener("load", reveal); img.addEventListener("error", reveal); }
+  })();
+</script>
+</html>
